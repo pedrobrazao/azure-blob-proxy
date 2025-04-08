@@ -26,7 +26,7 @@ final class ContainerNameValidator implements ValidatorInterface
 
     private function  validate(string $value): void
     {
-        if (false === preg_match(self::PATTERN, $value)) {
+        if (false === preg_match(self::NAME_PATTERN, $value)) {
             $this->valid = false;
             $this->error = self::INVALID_NAME_MESSAGE;
         }
