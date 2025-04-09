@@ -3,3 +3,4 @@ node_modules
 .phpunit.cache
 phpstan.neon
 phpunit.xml
+.env
