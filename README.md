@@ -1,6 +1,8 @@
 # Azure Blob Proxy
 
-This repository offers a proxy web application which makes easy to access an Azure Blob Storage account using Shared Access Key and exposing its features over a simplified REST API.
+Proxy web application to expose Azure Blob Storage features over a simplified REST API.
+
+> IMPORTANT! This application doesn't implement any authentication or any access control and it MUST be deployed under a private network or behind a firewall.
 
 ## Requirements
 
@@ -28,8 +30,84 @@ Alternatively in development mode simply start Azurite as Azure emulator and PHP
 
 ## Endpoints
 
-`GET /` List all Containers in your Azure Storage account.
+### List Containers
 
-`GET /{container}` List all objects (a.k.a. blobs) inside the designated container.
+List all Containers in your Azure Storage account.
 
-`GET /{container}/{blob}` Get the content of the specified blob.
+`GET /?op=list`
+
+### Find Blobs by Tag in Account
+
+`GET /?op=find&tags=tag1,tag2,...`
+
+### List Blobs in Container
+
+`GET /{container}?op=list&prefix=optional-prefix`
+
+### Get Container Properties
+
+`GET /{container}?op=props`
+
+### Set Container Metadata
+
+`PUT /{container}?op=metadata`
+
+Body:
+
+`{"key1":"value1","key2":"value2",...}`
+
+### Find Blobs by Tag in Container
+
+`GET /{container}?op=find&tags=tag1,tag2,...`
+
+### Delete Container
+
+`DELETE /{container}`
+
+### Upload Blob
+
+`PUT /{container}/{blob}?op=contents`
+
+Headers:
+
+- `Content-Type` The corresponding MIME type of the blob content.
+
+Body:
+
+The actual content of the blob.
+
+### Download Blob
+
+`GET /{container}/{blob}?op=content`
+
+### Get Blob Properties
+
+`GET /{container}/{blob}?op=props`
+
+### Get Blob Tags
+
+`GET /{container}/{blob}?op=tags`
+
+### Set Blob Metadata
+
+`PUT /{container}/{blob}?op=metadata`
+
+Body:
+
+`{"key1":"value1","key2":"value2",...}`
+
+### Set Blob Tags
+
+`PUT /{container}/{blob}?op=tags`
+
+Body:
+
+`[tag1,tag2,...]`
+
+### Delete Blob
+
+`DELETE /{container}/{blob}`
+
+### Generate SAS URL for Blob
+
+`GET /{container}/{blob}?op=sas&ttl=expiry-time-in-seconds&perms=rwd`
