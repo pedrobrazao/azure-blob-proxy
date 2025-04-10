@@ -36,6 +36,8 @@ final class GetBlobHandler
         switch ($request->getQueryParams()['op'] ?? null) {
             case 'content':
                 return $this->getContent($response, $args);
+                case 'props':
+                    return $this->getProperties($response, $args);
         }
 
         throw new InvalidOperationException();
