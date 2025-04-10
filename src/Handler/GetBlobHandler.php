@@ -6,10 +6,11 @@ namespace App\Handler;
 
 use App\Exception\InvalidBlobException;
 use App\Exception\InvalidContainerException;
+use App\Exception\InvalidOperationException;
 use App\Validator\BlobNameValidator;
 use App\Validator\ContainerNameValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
-use AzureOss\Storage\Blob\Models\BlobDownloadStreamingResult;
+use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -22,12 +23,9 @@ final class GetBlobHandler
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $query = $request->getQueryParams();
-        $body = $response->getBody();
-
-        $containerValidator = new ContainerNameValidator($args['container'] ?? '');
+        $containerVValidator = new ContainerNameValidator($args['container'] ?? '');
         if (false === $containerVValidator->isValid()) {
-            throw new InvalidContainerException($containerValidator->getError());
+            throw new InvalidContainerException($containerVValidator->getError());
         }
         
         $blobValidator = new BlobNameValidator($args['blob'] ?? '');
@@ -35,20 +33,30 @@ final class GetBlobHandler
             throw new InvalidBlobException($blobValidator->getError());
         }
 
-        switch ($query['op'] ?? 'content') {
-            default:
-            $stream = $this->getDownloadStream($args['container'], $args['blob']);
-            $response = $response->withHeader('content-type', $stream->properties->contentType);
-            $body->write($stream->content);
-            break;
+        switch ($request->getQueryParams()['op'] ?? null) {
+            case 'content':
+                return $this->getContent($response, $args);
         }
 
-        return $response->withBody($body);
+        throw new InvalidOperationException();
     }
 
-    private function getDownloadStream(string $containerName, string $blobName): BlobDownloadStreamingResult
+    private function getContent(ResponseInterface $response, array $args): ResponseInterface
     {
-        $client = $this->blobServiceClient->getContainerClient($containerName)->getBlobClient($blobName);
-        
-        return $client->downloadStreaming();
+        $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
+        $blob = $client->downloadStreaming();
+
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', $blob->properties->contentType)->withBody($blob->content);
+    }
+
+    private function getProperties(ResponseInterface $response, array $args): ResponseInterface
+    {
+        $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
+        $properties = $client->getProperties();
+
+        $body = $response->getBody();
+        $body->write(json_encode($properties));
+
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+    }
 }

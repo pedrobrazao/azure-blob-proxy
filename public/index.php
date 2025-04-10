@@ -3,6 +3,7 @@
 use App\Handler\GetBlobHandler;
 use App\Handler\GetContainerHandler;
 use App\Handler\GetStorageHandler;
+use App\Handler\PutContainerHandler;
 use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 
@@ -52,6 +53,7 @@ $errorMiddleware = $app->addErrorMiddleware($settings['displayErrorDetails'], $s
 // Define app routes
 $app->get('/', GetStorageHandler::class);
 $app->get('/{container}', GetContainerHandler::class);
+$app->put('/{container}', PutContainerHandler::class);
 $app->get('/{container}/[{blob:.+}]', GetBlobHandler::class);
 
 // Run app
