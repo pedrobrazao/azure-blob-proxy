@@ -10,6 +10,8 @@ use App\Exception\InvalidOperationException;
 use App\Validator\BlobNameValidator;
 use App\Validator\ContainerNameValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
+use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
+use DateTimeImmutable;
 use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -38,6 +40,10 @@ final class GetBlobHandler
                 return $this->getContent($response, $args);
                 case 'props':
                     return $this->getProperties($response, $args);
+                    case 'tags':
+                        return $this->getTags($response, $args);
+                    case 'sas':
+                        return $this->getSasUrl($request, $response, $args);
         }
 
         throw new InvalidOperationException();
@@ -60,5 +66,35 @@ final class GetBlobHandler
         $body->write(json_encode($properties));
 
         return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+    }
+
+    private function getTags(ResponseInterface $response, array $args): ResponseInterface
+    {
+        $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
+        $tags = $client->getTags();
+
+        $body = $response->getBody();
+        $body->write(json_encode($tags));
+
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+    }
+
+    private function getSasUrl(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $ttl = (int) $request->getQueryParams()['ttl'] ?? 3600;
+        $perms = $request->getQueryParams()['perms'] ?? 'r';
+
+        $builder = BlobSasBuilder::new()->setContainerName($args['container'])
+        ->setBlobName($args['blob'])
+        ->setPermissions($perms)
+        ->setExpiresOn(new DateTimeImmutable(date('c', time() + $ttl)));
+
+        $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
+        $uri = $client->generateSasUri($builder);
+
+        $body = $response->getBody();
+        $body->write((string) $uri);
+
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'text/plain')->withBody($body);
     }
 }
