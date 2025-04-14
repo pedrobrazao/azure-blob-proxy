@@ -64,7 +64,7 @@ Body:
 
 `DELETE /{container}`
 
-### Upload Blob
+### Create or Update Blob
 
 `PUT /{container}/{blob}?op=contents`
 
@@ -75,6 +75,12 @@ Headers:
 Body:
 
 The actual content of the blob.
+
+### Upload File to Blob
+
+Alternative way to create or update a blob by uploading a single file via an usual HTML file upload form.
+
+`POST /{container}/{blob}`
 
 ### Download Blob
 
