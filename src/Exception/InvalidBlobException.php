@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Exception;
 
-use InvalidArgumentException;
-
-final class InvalidBlobException extends InvalidArgumentException
+final class InvalidBlobException extends InvalidHttpRequestException
 {
     private const MESSAGE = 'Invalid blob name.';
-    private const CODE = 400;
 
+    public function __construct(string $message = self::MESSAGE)
+    {
+        parent::__construct($message);
+    }
 }

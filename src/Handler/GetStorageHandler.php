@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Handler;
 
+use App\Exception\InvalidOperationException;
+use App\Validator\RequiredArgumentValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Models\BlobContainer;
+use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use SebastianBergmann\CliParser\RequiredOptionArgumentMissingException;
 
 final class GetStorageHandler
 {
@@ -18,18 +22,15 @@ final class GetStorageHandler
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-$json = json_encode($this->listContainers());
+        switch ($request->getQueryParams()['op'] ?? null) {
+            case 'list':
+                return $this->listContainers();
+        }
 
-$body = $response->getBody();
-$body->write($json);
-
-        return $response->withHeader('content-type', 'application/json')->withBody($body);
+        throw new InvalidOperationException();
     }
 
-    /**
-     * @return BlobContainer[]
-     */
-    private function listContainers(): array
+    private function listContainers(ResponseInterface $response, array $args): ResponseInterface
     {
         $containers = [];
 
@@ -37,6 +38,33 @@ $body->write($json);
             $containers[] = $container;
         }
 
-        return $containers;
+        $body = $response->getBody();
+        $body->write(json_encode($containers));
+
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+    }
+
+    /**
+     * @see https://learn.microsoft.com/en-us/rest/api/storageservices/find-blobs-by-tags?tabs=microsoft-entra-id#remarks
+     */
+    private function findBlobsByTag(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $validator = new RequiredArgumentValidator('where', $request->getQueryParams());
+
+        if (false === $validator->isValid()) {
+            throw new RequiredOptionArgumentMissingException($validator->getError());
+        }
+        
+        $where = $request->getQueryParams()['where'];
+        $blobs = [];
+
+        foreach ($this->blobServiceClient->findBlobsByTag($where) as $blob) {
+            $blobs[] = $blob;
+        }
+
+        $body = $response->getBody();
+        $body->write(json_encode($blobs));
+
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
     }
 }

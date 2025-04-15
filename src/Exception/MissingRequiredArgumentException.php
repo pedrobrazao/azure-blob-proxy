@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Exception;
 
-final class InvalidOperationException extends InvalidHttpRequestException
+final class MissingRequiredArgumentException extends InvalidHttpRequestException
 {
-    private const MESSAGE = 'Invalid or missing operation.';
+    private const MESSAGE = 'One or more required argument is missing.';
 
     public function __construct(string $message = self::MESSAGE)
     {

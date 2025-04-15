@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Exception;
 
-use InvalidArgumentException;
-
-final class InvalidContainerException extends InvalidArgumentException
+final class InvalidContainerException extends InvalidHttpRequestException
 {
     private const MESSAGE = 'Invalid container name.';
-    private const CODE = 400;
 
-    public function __construct(string $message = self::MESSAGE, int $code = self::CODE)
+    public function __construct(string $message = self::MESSAGE)
     {
-        parent::__construct($message, $code);
+        parent::__construct($message);
     }
 }
