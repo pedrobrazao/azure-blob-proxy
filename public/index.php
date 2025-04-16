@@ -1,23 +1,17 @@
     <?php
 
+use App\Factory\ContainerFactory;
 use App\Handler\GetBlobHandler;
 use App\Handler\GetContainerHandler;
 use App\Handler\GetStorageHandler;
 use App\Handler\PutBlobHandler;
 use App\Handler\PutContainerHandler;
-use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Create the Container builder.
-$containerBuilder = new ContainerBuilder();
-
-// Add service definitions to the Container.
-    $containerBuilder->addDefinitions(include __DIR__ . '/../config/container.php');
-
-    //Build the Container instance.
-    $container = $containerBuilder->build();
+    //Create a new instance of a DI Container.
+    $container = (new ContainerFactory(include __DIR__ . '/../config/container.php'))->create();
 
     // Set Container into Factory before create a new App instance.
 AppFactory::setContainer($container);
