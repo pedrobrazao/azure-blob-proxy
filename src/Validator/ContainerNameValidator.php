@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Validator;
 
-final class ContainerNameValidator implements ValidatorInterface
+final class ContainerNameValidator extends AbstractValidator
 {
-    use ValidatorTrait;
-    
     /**
      * Container name MUST be:
      *  - 3 to 63 Characters;
@@ -17,18 +15,25 @@ final class ContainerNameValidator implements ValidatorInterface
      */
     public const NAME_PATTERN = '/^(?=.{3,63}$)[a-z0-9]+(-[a-z0-9]+)*$/';
 
-    public const INVALID_NAME_MESSAGE = 'The container name is invalid.';
+    public const INVALID_NAME_MESSAGE = 'The container name is invalid: ';
 
-    public function __construct(private readonly string $value)
+    public function  
+    validate($value, array $context = []): self
     {
-        $this->validate($value);
-    }
+        parent::validate($value);
+        
+        if (
+            false === is_string($value)
+            || !preg_match(self::NAME_PATTERN, $value)
+            ) {
+            $this->error = self::INVALID_NAME_MESSAGE . $value;
 
-    private function  validate(string $value): void
-    {
-        if (false === preg_match(self::NAME_PATTERN, $value)) {
-            $this->valid = false;
-            $this->error = self::INVALID_NAME_MESSAGE;
+            return $this;
         }
+
+        $this->valid = true;
+        $this->error = null;
+
+        return $this;
     }
 }

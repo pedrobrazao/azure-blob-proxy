@@ -13,27 +13,25 @@ use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
-use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class PutBlobHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient
-
+        private readonly BlobServiceClient $blobServiceClient,
+        private readonly ContainerNameValidator $containerNameValidator,
+        private readonly BlobNameValidator $blobNameValidator
     ) {}
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $containerVValidator = new ContainerNameValidator($args['container'] ?? '');
-        if (false === $containerVValidator->isValid()) {
-            throw new InvalidContainerException($containerVValidator->getError());
+        if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
+            throw new InvalidContainerException($this->containerNameValidator->getError());
         }
         
-        $blobValidator = new BlobNameValidator($args['blob'] ?? '');
-        if (false === $blobValidator->isValid()) {
-            throw new InvalidBlobException($blobValidator->getError());
+        if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
+            throw new InvalidBlobException($this->blobNameValidator->getError());
         }
 
         switch ($request->getQueryParams()['op'] ?? '') {
@@ -54,7 +52,7 @@ final class PutBlobHandler
 $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
 $client->upload($request->getBody()->getContents(), $options);
 
-return $response->withStatus(StatusCodeInterface::STATUS_CREATED);
+return $response->withStatus(201);
    }
 
    private function setMetadata(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
@@ -62,6 +60,6 @@ return $response->withStatus(StatusCodeInterface::STATUS_CREATED);
     $metadata = json_decode($request->getBody()->getContents(), true);
     $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob'])->setMetadata($metadata);
 
-    return $response->withStatus(StatusCodeInterface::STATUS_OK);
+    return $response->withStatus(200);
    }
 }

@@ -12,27 +12,26 @@ use App\Validator\ContainerNameValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use DateTimeImmutable;
-use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class GetBlobHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient
+        private readonly BlobServiceClient $blobServiceClient,
+        private readonly ContainerNameValidator $containerNameValidator,
+        private readonly BlobNameValidator $blobNameValidator
 
     ) {}
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $containerVValidator = new ContainerNameValidator($args['container'] ?? '');
-        if (false === $containerVValidator->isValid()) {
-            throw new InvalidContainerException($containerVValidator->getError());
+        if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
+            throw new InvalidContainerException($this->containerNameValidator->getError());
         }
         
-        $blobValidator = new BlobNameValidator($args['blob'] ?? '');
-        if (false === $blobValidator->isValid()) {
-            throw new InvalidBlobException($blobValidator->getError());
+        if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
+            throw new InvalidBlobException($this->blobNameValidator->getError());
         }
 
         switch ($request->getQueryParams()['op'] ?? null) {
@@ -54,7 +53,7 @@ final class GetBlobHandler
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
         $blob = $client->downloadStreaming();
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', $blob->properties->contentType)->withBody($blob->content);
+        return $response->withStatus(200)->withHeader('content-type', $blob->properties->contentType)->withBody($blob->content);
     }
 
     private function getProperties(ResponseInterface $response, array $args): ResponseInterface
@@ -65,7 +64,7 @@ final class GetBlobHandler
         $body = $response->getBody();
         $body->write(json_encode($properties));
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+        return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 
     private function getTags(ResponseInterface $response, array $args): ResponseInterface
@@ -76,7 +75,7 @@ final class GetBlobHandler
         $body = $response->getBody();
         $body->write(json_encode($tags));
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+        return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 
     private function getSasUrl(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
@@ -95,6 +94,6 @@ final class GetBlobHandler
         $body = $response->getBody();
         $body->write((string) $uri);
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'text/plain')->withBody($body);
+        return $response->withStatus(200)->withHeader('content-type', 'text/plain')->withBody($body);
     }
 }

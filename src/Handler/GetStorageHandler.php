@@ -5,32 +5,33 @@ declare(strict_types=1);
 namespace App\Handler;
 
 use App\Exception\InvalidOperationException;
+use App\Exception\MissingRequiredArgumentException;
 use App\Validator\RequiredArgumentValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Models\BlobContainer;
-use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use SebastianBergmann\CliParser\RequiredOptionArgumentMissingException;
 
 final class GetStorageHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient
-
+        private readonly BlobServiceClient $blobServiceClient,
+        private readonly RequiredArgumentValidator $requiredArgumentValidator
     ) {}
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         switch ($request->getQueryParams()['op'] ?? null) {
             case 'list':
-                return $this->listContainers();
+                return $this->listContainers($response);
+                case 'find':
+                    return $this->findBlobsByTag($request, $response);
         }
 
         throw new InvalidOperationException();
     }
 
-    private function listContainers(ResponseInterface $response, array $args): ResponseInterface
+    private function listContainers(ResponseInterface $response): ResponseInterface
     {
         $containers = [];
 
@@ -41,7 +42,7 @@ final class GetStorageHandler
         $body = $response->getBody();
         $body->write(json_encode($containers));
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+        return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 
     /**
@@ -49,10 +50,8 @@ final class GetStorageHandler
      */
     private function findBlobsByTag(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $validator = new RequiredArgumentValidator('where', $request->getQueryParams());
-
-        if (false === $validator->isValid()) {
-            throw new RequiredOptionArgumentMissingException($validator->getError());
+        if (false === $this->requiredArgumentValidator->validate('where', $request->getQueryParams())->isValid()) {
+            throw new MissingRequiredArgumentException($this->requiredArgumentValidator->getError());
         }
         
         $where = $request->getQueryParams()['where'];
@@ -65,6 +64,6 @@ final class GetStorageHandler
         $body = $response->getBody();
         $body->write(json_encode($blobs));
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+        return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 }

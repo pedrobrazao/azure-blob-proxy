@@ -1,5 +1,6 @@
-vendor
-node_modules
+vendor/
+node_modules/
+var/
 .phpunit.cache
 phpstan.neon
 phpunit.xml

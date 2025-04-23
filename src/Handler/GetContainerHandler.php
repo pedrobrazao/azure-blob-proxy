@@ -8,23 +8,20 @@ use App\Exception\InvalidContainerException;
 use App\Exception\InvalidOperationException;
 use App\Validator\ContainerNameValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
-use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class GetContainerHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient
-
+        private readonly BlobServiceClient $blobServiceClient,
+        private readonly ContainerNameValidator $containerNameValidator
     ) {}
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $validator = new ContainerNameValidator($args['container']);
-
-        if (false === $validator->isValid()) {
-            throw new InvalidContainerException($validator->getError());
+        if (false === $this->containerNameValidator->validate($args['container'] ?? '')->isValid()) {
+            throw new InvalidContainerException($this->containerNameValidator->getError());
         }
 
 switch ($request->getQueryParams()['op'] ?? null) {
@@ -32,7 +29,7 @@ switch ($request->getQueryParams()['op'] ?? null) {
         return $this->listBlobs($request, $response, $args);
         case 'props':
             return $this->getProperties($response, $args);
-}
+} 
         
 throw new InvalidOperationException();
     }
@@ -51,7 +48,7 @@ throw new InvalidOperationException();
         $body = $response->getBody();
         $body->write($json);
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+        return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 
     private function getProperties(ResponseInterface $response, array $args): ResponseInterface
@@ -62,6 +59,6 @@ throw new InvalidOperationException();
         $body = $response->getBody();
         $body->write($json);
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)->withHeader('content-type', 'application/json')->withBody($body);
+        return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 }

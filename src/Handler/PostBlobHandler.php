@@ -14,8 +14,6 @@ use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
-use Fig\Http\Message\StatusCodeInterface;
-use GuzzleHttp\Psr7\UploadedFile;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
@@ -23,20 +21,19 @@ use Psr\Http\Message\UploadedFileInterface;
 final class PostBlobHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient
-
+        private readonly BlobServiceClient $blobServiceClient,
+        private readonly ContainerNameValidator $containerNameValidator,
+        private readonly BlobNameValidator $blobNameValidator
     ) {}
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $containerVValidator = new ContainerNameValidator($args['container'] ?? '');
-        if (false === $containerVValidator->isValid()) {
-            throw new InvalidContainerException($containerVValidator->getError());
+        if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
+            throw new InvalidContainerException($this->containerNameValidator->getError());
         }
         
-        $blobValidator = new BlobNameValidator($args['blob'] ?? '');
-        if (false === $blobValidator->isValid()) {
-            throw new InvalidBlobException($blobValidator->getError());
+        if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
+            throw new InvalidBlobException($this->blobNameValidator->getError());
         }
 
         switch ($request->getQueryParams()['op'] ?? '') {
@@ -58,6 +55,6 @@ final class PostBlobHandler
 $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
 $client->upload($upload->getStream()->getContents(), new UploadBlobOptions($upload->getClientMediaType()));
 
-return $response->withStatus(StatusCodeInterface::STATUS_CREATED);
+return $response->withStatus(201);
    }
 }

@@ -4,22 +4,27 @@ declare(strict_types=1);
 
 namespace App\Validator;
 
-final class BlobNameValidator implements ValidatorInterface
+final class BlobNameValidator extends AbstractValidator
 {
-    use ValidatorTrait;
-
     public const INVALID_NAME_MESSAGE = 'The blob name is invalid.';
 
-    public function __construct(private readonly string $value)
+    public function  validate($value, array $context = []): self
     {
-        $this->validate($value);
-    }
+        parent::validate($value);
 
-    private function  validate(string $value): void
-    {
-        if ('' === trim($value) || 254 < strlen($value)) {
-            $this->valid = false;
+        if (
+            false === is_string($value)
+            || '' === $value
+            || 254 < strlen($value)
+            ) {
             $this->error = self::INVALID_NAME_MESSAGE;
+
+            return $this;
         }
+
+        $this->valid = true;
+        $this->error = null;
+
+        return $this;
     }
 }

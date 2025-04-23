@@ -4,6 +4,7 @@ use App\Factory\ContainerFactory;
 use App\Handler\GetBlobHandler;
 use App\Handler\GetContainerHandler;
 use App\Handler\GetStorageHandler;
+use App\Handler\PostBlobHandler;
 use App\Handler\PutBlobHandler;
 use App\Handler\PutContainerHandler;
 use Slim\Factory\AppFactory;
@@ -51,6 +52,7 @@ $app->get('/{container}', GetContainerHandler::class);
 $app->put('/{container}', PutContainerHandler::class);
 $app->get('/{container}/[{blob:.+}]', GetBlobHandler::class);
 $app->put('/{container}/[{blob:.+}]', PutBlobHandler::class);
+$app->post('/{container}/[{blob:.+}]', PostBlobHandler::class);
 
 // Run app
 $app->run();

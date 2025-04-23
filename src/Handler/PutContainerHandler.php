@@ -10,23 +10,21 @@ use App\Validator\ContainerNameValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\GetBlobsOptions;
-use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class PutContainerHandler
+final class 
+PutContainerHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient
-
+        private readonly BlobServiceClient $blobServiceClient,
+        private readonly ContainerNameValidator $containerNameValidator
     ) {}
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $validator = new ContainerNameValidator($args['container'] ?? '');
-
-        if (false === $validator->isValid()) {
-            throw new InvalidContainerException;
+        if (false === $this->containerNameValidator->validate($args['container'] ?? '')->isValid()) {
+            throw new InvalidContainerException($this->containerNameValidator->getError());
         }
 
         switch ($request->getQueryParams()['op'] ?? '') {
@@ -41,16 +39,18 @@ final class PutContainerHandler
 
    private function createContainer(ResponseInterface $response, array $args): ResponseInterface
    {
-$this->blobServiceClient->getContainerClient($args['container'])->create();
+$client = $this->blobServiceClient->getContainerClient($args['container']);
+$client->create();
 
-return $response->withStatus(StatusCodeInterface::STATUS_CREATED);
+return $response->withStatus(201);
    }
 
    private function setMetadata(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
    {
     $metadata = json_decode($request->getBody()->getContents(), true);
-    $this->blobServiceClient->getContainerClient($args['container'])->setMetadata($metadata);
+    $client = $this->blobServiceClient->getContainerClient($args['container']);
+    $client->setMetadata($metadata);
 
-    return $response->withStatus(StatusCodeInterface::STATUS_OK);
+    return $response->withStatus(200);
    }
 }
