@@ -8,6 +8,7 @@ use App\Exception\InvalidContainerException;
 use App\Exception\InvalidOperationException;
 use App\Validator\ContainerNameValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -56,8 +57,7 @@ throw new InvalidOperationException();
         $properties = $this->blobServiceClient->getContainerClient($args['container'])->getProperties();
         $json = json_encode($properties);
 
-        $body = $response->getBody();
-        $body->write($json);
+        $body = Utils::streamFor($json);
 
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
