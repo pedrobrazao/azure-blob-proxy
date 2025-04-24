@@ -151,6 +151,12 @@ $data = json_decode($contents, true);
 
 // assert the response contains data
 $this->assertIsArray($data);
+$this->assertArrayHasKey('lastModified', $data);
+$this->assertArrayHasKey('metadata', $data);
+foreach ($metadata as $key => $value) {
+    $this->assertArrayHasKey($key, $data['metadata']);
+    $this->assertSame((string) $value, $data['metadata'][$key]);
+}
 
         // delete the container
         $client->delete();
