@@ -12,6 +12,7 @@ use App\Validator\ContainerNameValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use DateTimeImmutable;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -52,17 +53,19 @@ final class GetBlobHandler
     {
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
         $blob = $client->downloadStreaming();
+        $body = $blob->content;
+        $contentType = $blob->properties->contentType;
 
-        return $response->withStatus(200)->withHeader('content-type', $blob->properties->contentType)->withBody($blob->content);
+        return $response->withStatus(200)->withHeader('content-type', $contentType)->withBody($body);
     }
 
     private function getProperties(ResponseInterface $response, array $args): ResponseInterface
     {
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
         $properties = $client->getProperties();
+        $json = json_encode($properties);
 
-        $body = $response->getBody();
-        $body->write(json_encode($properties));
+        $body = Utils::streamFor($json);;
 
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
@@ -71,9 +74,9 @@ final class GetBlobHandler
     {
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
         $tags = $client->getTags();
+        $json = json_encode(($tags));
 
-        $body = $response->getBody();
-        $body->write(json_encode($tags));
+        $body = Utils::streamFor($json);;
 
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
