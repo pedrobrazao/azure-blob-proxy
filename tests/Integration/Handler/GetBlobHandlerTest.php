@@ -12,6 +12,7 @@ use App\Tests\Integration\IntegrationTestCase;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
+use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class GetBlobHandlerTest extends IntegrationTestCase
@@ -166,6 +167,48 @@ $handler($request, $response, $args);
     $this->assertIsArray($data);
     $this->assertSame($tags, $data);
     
+    // delete the container
+    $containerClient->delete();
+   }
+
+   public function testGetSasUrl(): void{
+    // generate random container and blob names
+    $containerName = uniqid('test-');
+    $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
+
+    // create the container
+    $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
+    $containerClient->create();
+    $this->assertTrue($containerClient->exists());
+
+    // create the blob
+    $contents = random_bytes(rand(100, 1000));
+    $contentType = 'text/plain';
+    $blobClient = $containerClient->getBlobClient($blobName);
+    $blobClient->upload($contents, new UploadBlobOptions($contentType));
+    $this->assertTrue($blobClient->exists());
+
+    // create server request and parsed arguments
+    $queryParams = ['op' => 'sas', 'ttl' => 600, 'perms' => 'r'];
+    $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
+    $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+    $args = ['container' => $containerName, 'blob' => $blobName];
+
+    /** @var GetBlobHandler $handler */
+    $handler = $this->getContainer()->get(GetBlobHandler::class);
+
+    // invoke handler and hold the response
+    $response = $handler($request, new Response(), $args);
+
+    // assert the expected response status code
+    $this->assertSame(200, $response->getStatusCode());
+
+    // assert response body
+    $body = $response->getBody()->getContents();
+    $sas = new Uri($body);
+    $this->assertNotFalse(strpos($sas->getPath(), $containerName));
+    $this->assertNotFalse(strpos($sas->getPath(), $blobName));
+
     // delete the container
     $containerClient->delete();
    }

@@ -94,8 +94,7 @@ final class GetBlobHandler
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
         $uri = $client->generateSasUri($builder);
 
-        $body = $response->getBody();
-        $body->write((string) $uri);
+        $body = Utils::streamFor($uri);
 
         return $response->withStatus(200)->withHeader('content-type', 'text/plain')->withBody($body);
     }
