@@ -5,3 +5,4 @@ var/
 phpstan.neon
 phpunit.xml
 .env
+.php-cs-fixer.php
