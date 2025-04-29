@@ -9,6 +9,7 @@ use App\Exception\MissingRequiredArgumentException;
 use App\Validator\RequiredArgumentValidator;
 use AzureOss\Storage\Blob\BlobServiceClient;
 use AzureOss\Storage\Blob\Models\BlobContainer;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -36,11 +37,11 @@ final class GetStorageHandler
         $containers = [];
 
         foreach ($this->blobServiceClient->getBlobContainers() as $container) {
-            $containers[] = $container;
+            $containers[$container->name] = $container;
         }
 
-        $body = $response->getBody();
-        $body->write(json_encode($containers));
+        $json = json_encode($containers);
+        $body = Utils::streamFor($json);
 
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
