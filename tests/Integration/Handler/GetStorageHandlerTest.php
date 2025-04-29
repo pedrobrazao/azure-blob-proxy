@@ -18,10 +18,10 @@ final class GetStorageHandlerTest extends IntegrationTestCase
         $containers = [];
         $client = $this->getBlobServiceClient();
         for ($i = 0; $i < rand(2, 10); $i++) {
-$name = uniqid('test-');
-$client->getContainerClient($name)->create();
-$this->assertTrue($client->getContainerClient($name)->exists());
-$containers[] = $name;
+            $name = uniqid('test-');
+            $client->getContainerClient($name)->create();
+            $this->assertTrue($client->getContainerClient($name)->exists());
+            $containers[] = $name;
         }
 
         // create server request

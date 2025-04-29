@@ -24,37 +24,38 @@ final class PostBlobHandler
         private readonly BlobServiceClient $blobServiceClient,
         private readonly ContainerNameValidator $containerNameValidator,
         private readonly BlobNameValidator $blobNameValidator
-    ) {}
+    ) {
+    }
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
             throw new InvalidContainerException($this->containerNameValidator->getError());
         }
-        
+
         if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
             throw new InvalidBlobException($this->blobNameValidator->getError());
         }
 
         switch ($request->getQueryParams()['op'] ?? '') {
-            case 'upload':  
+            case 'upload':
                 return $this->uploadBlobs($request, $response, $args);
         }
 
         throw new InvalidOperationException();
-   }
-
-   private function uploadBlobs(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
-   {
-    $upload = current($request->getUploadedFiles());
-
-    if (false === $upload instanceof UploadedFileInterface || UPLOAD_ERR_OK !== $upload->getError()) {
-        throw new InvalidUploadException();
     }
 
-$client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
-$client->upload($upload->getStream()->getContents(), new UploadBlobOptions($upload->getClientMediaType()));
+    private function uploadBlobs(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $upload = current($request->getUploadedFiles());
 
-return $response->withStatus(201);
-   }
+        if (false === $upload instanceof UploadedFileInterface || UPLOAD_ERR_OK !== $upload->getError()) {
+            throw new InvalidUploadException();
+        }
+
+        $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
+        $client->upload($upload->getStream()->getContents(), new UploadBlobOptions($upload->getClientMediaType()));
+
+        return $response->withStatus(201);
+    }
 }

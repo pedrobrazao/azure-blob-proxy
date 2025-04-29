@@ -27,5 +27,5 @@ final class BlobNameValidatorTest extends TestCase
             ['', false],
             [str_repeat('x', 255), false],
         ];
-   }
+    }
 }

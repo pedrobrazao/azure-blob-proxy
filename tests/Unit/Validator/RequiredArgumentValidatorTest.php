@@ -13,7 +13,7 @@ final class RequiredArgumentValidatorTest extends TestCase
     #[DataProvider('argumentProvider')]
     public function testRequiredArgument(string $name, array $arguments, bool $valid): void
     {
-        $validator = new RequiredArgumentValidator;
+        $validator = new RequiredArgumentValidator();
 
         $this->assertSame($valid, $validator->validate($name, $arguments)->isValid());
         $this->assertSame($valid ? null : RequiredArgumentValidator::MISSING_ARGUMENT_MESSAGE . $name, $validator->getError());
@@ -26,5 +26,5 @@ final class RequiredArgumentValidatorTest extends TestCase
             ['op', [], false],
             ['', [], false],
         ];
-   }
+    }
 }

@@ -13,13 +13,13 @@ use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class 
-PutContainerHandler
+final class PutContainerHandler
 {
     public function __construct(
         private readonly BlobServiceClient $blobServiceClient,
         private readonly ContainerNameValidator $containerNameValidator
-    ) {}
+    ) {
+    }
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
@@ -28,29 +28,29 @@ PutContainerHandler
         }
 
         switch ($request->getQueryParams()['op'] ?? '') {
-            case 'create':  
+            case 'create':
                 return $this->createContainer($response, $args);
-                case 'metadata':
-                    return $this->setMetadata($request, $response, $args);
+            case 'metadata':
+                return $this->setMetadata($request, $response, $args);
         }
 
         throw new InvalidOperationException();
-   }
+    }
 
-   private function createContainer(ResponseInterface $response, array $args): ResponseInterface
-   {
-$client = $this->blobServiceClient->getContainerClient($args['container']);
-$client->create();
+    private function createContainer(ResponseInterface $response, array $args): ResponseInterface
+    {
+        $client = $this->blobServiceClient->getContainerClient($args['container']);
+        $client->create();
 
-return $response->withStatus(201);
-   }
+        return $response->withStatus(201);
+    }
 
-   private function setMetadata(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
-   {
-    $metadata = json_decode($request->getBody()->getContents(), true);
-    $client = $this->blobServiceClient->getContainerClient($args['container']);
-    $client->setMetadata($metadata);
+    private function setMetadata(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $metadata = json_decode($request->getBody()->getContents(), true);
+        $client = $this->blobServiceClient->getContainerClient($args['container']);
+        $client->setMetadata($metadata);
 
-    return $response->withStatus(200);
-   }
+        return $response->withStatus(200);
+    }
 }

@@ -20,7 +20,7 @@ abstract class IntegrationTestCase extends TestCase
             $this->container = (new ContainerFactory($definitions))->create();
         }
 
-return $this->container;
+        return $this->container;
     }
 
     protected function getBlobServiceClient(): BlobServiceClient

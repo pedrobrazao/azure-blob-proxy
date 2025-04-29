@@ -10,7 +10,8 @@ use Psr\Container\ContainerInterface;
 final class ContainerFactory
 {
     public function __construct(private readonly array $definitions)
-    {}
+    {
+    }
 
     public function create(): ContainerInterface
     {

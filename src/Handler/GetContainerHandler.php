@@ -17,7 +17,8 @@ final class GetContainerHandler
     public function __construct(
         private readonly BlobServiceClient $blobServiceClient,
         private readonly ContainerNameValidator $containerNameValidator
-    ) {}
+    ) {
+    }
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
@@ -25,14 +26,14 @@ final class GetContainerHandler
             throw new InvalidContainerException($this->containerNameValidator->getError());
         }
 
-switch ($request->getQueryParams()['op'] ?? null) {
-    case 'list':
-        return $this->listBlobs($request, $response, $args);
-        case 'props':
-            return $this->getProperties($response, $args);
-} 
-        
-throw new InvalidOperationException();
+        switch ($request->getQueryParams()['op'] ?? null) {
+            case 'list':
+                return $this->listBlobs($request, $response, $args);
+            case 'props':
+                return $this->getProperties($response, $args);
+        }
+
+        throw new InvalidOperationException();
     }
 
     private function listBlobs(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

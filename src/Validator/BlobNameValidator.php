@@ -8,7 +8,7 @@ final class BlobNameValidator extends AbstractValidator
 {
     public const INVALID_NAME_MESSAGE = 'The blob name is invalid.';
 
-    public function  validate($value, array $context = []): self
+    public function validate($value, array $context = []): self
     {
         parent::validate($value);
 
@@ -16,7 +16,7 @@ final class BlobNameValidator extends AbstractValidator
             false === is_string($value)
             || '' === $value
             || 254 < strlen($value)
-            ) {
+        ) {
             $this->error = self::INVALID_NAME_MESSAGE;
 
             return $this;

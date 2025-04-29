@@ -17,32 +17,34 @@ final class GetContainerHandlerTest extends IntegrationTestCase
 {
     public function testInvalidContainerName(): void
     {
-$containerName = '--invalid-';
+        $containerName = '--invalid-';
 
-$request = new ServerRequest('PUT', 'http://localhost/' . $containerName);
-$response = new Response();
-$args = ['container' => $containerName];
+        $request = new ServerRequest('PUT', 'http://localhost/' . $containerName);
+        $response = new Response();
+        $args = ['container' => $containerName];
 
-    /** @var GetContainerHandler $handler */
-        $handler = $this->getContainer()->get(GetContainerHandler::class);;
+        /** @var GetContainerHandler $handler */
+        $handler = $this->getContainer()->get(GetContainerHandler::class);
+        ;
 
-$this->expectException(InvalidContainerException::class);
-$handler($request, $response, $args);
+        $this->expectException(InvalidContainerException::class);
+        $handler($request, $response, $args);
     }
 
     public function testInvalidOperation(): void
     {
-$containerName = 'my-container';
+        $containerName = 'my-container';
 
-$request = new ServerRequest('PUT', 'http://localhost/' . $containerName);
-$response = new Response();
-$args = ['container' => $containerName];
+        $request = new ServerRequest('PUT', 'http://localhost/' . $containerName);
+        $response = new Response();
+        $args = ['container' => $containerName];
 
         /** @var GetContainerHandler $handler */
-        $handler = $this->getContainer()->get(GetContainerHandler::class);;
+        $handler = $this->getContainer()->get(GetContainerHandler::class);
+        ;
 
-$this->expectException(InvalidOperationException::class);
-$handler($request, $response, $args);
+        $this->expectException(InvalidOperationException::class);
+        $handler($request, $response, $args);
     }
 
 
@@ -71,33 +73,33 @@ $handler($request, $response, $args);
         }
 
         // put the blobs to the container
-foreach ($blobs as $name => $contents) {
-    $client->getBlobClient($name)->upload($contents, new UploadBlobOptions('text/plain'));
-}
+        foreach ($blobs as $name => $contents) {
+            $client->getBlobClient($name)->upload($contents, new UploadBlobOptions('text/plain'));
+        }
 
-    // create server request and parsed arguments
-    $queryParams = ['op' => 'list', 'prefix' => $prefix];
-    $uri = sprintf('http://localhost/%s?%s', $containerName, http_build_query($queryParams));
-    $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
-    $args = ['container' => $containerName];
+        // create server request and parsed arguments
+        $queryParams = ['op' => 'list', 'prefix' => $prefix];
+        $uri = sprintf('http://localhost/%s?%s', $containerName, http_build_query($queryParams));
+        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $args = ['container' => $containerName];
 
-    /** @var GetContainerHandler $handler */
-    $handler = $this->getContainer()->get(GetContainerHandler::class);
+        /** @var GetContainerHandler $handler */
+        $handler = $this->getContainer()->get(GetContainerHandler::class);
 
-    // invoke the handler and hold the response
-    $response = $handler($request, new Response(), $args);
+        // invoke the handler and hold the response
+        $response = $handler($request, new Response(), $args);
 
-    // assert the expected response status code
-    $this->assertSame(200, $response->getStatusCode());
+        // assert the expected response status code
+        $this->assertSame(200, $response->getStatusCode());
 
-    // assert all blobs are listed in the response body
-    $data = json_decode($response->getBody()->getContents(), true);
-    foreach ($data as $blob) {
-        $this->assertArrayHasKey($blob->name, $blobs);
-    }
+        // assert all blobs are listed in the response body
+        $data = json_decode($response->getBody()->getContents(), true);
+        foreach ($data as $blob) {
+            $this->assertArrayHasKey($blob->name, $blobs);
+        }
 
-    // delete the container and all blobs
-    $client->delete();
+        // delete the container and all blobs
+        $client->delete();
     }
 
     public static function prefixProvider(): array
@@ -109,7 +111,6 @@ foreach ($blobs as $name => $contents) {
     }
 
     public function testGetContainerProperties(): void
-
     {
         // generate a random container name
         $containerName = uniqid('test-');
@@ -124,39 +125,39 @@ foreach ($blobs as $name => $contents) {
 
         // set metadata
         $metadata = ['time' => time(), 'id' => uniqid()];
-$client->setMetadata($metadata);
+        $client->setMetadata($metadata);
 
-// assert the metadata is stored
-$properties = $client->getProperties();
-$this->assertCount(count($metadata), $properties->metadata);
+        // assert the metadata is stored
+        $properties = $client->getProperties();
+        $this->assertCount(count($metadata), $properties->metadata);
 
-// create server request and parsed arguments
-$queryParams = ['op' => 'props'];
-$uri = sprintf('http://localhost/%s?%s', $containerName, http_build_query($queryParams));
-$request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
-$args = ['container' => $containerName];
+        // create server request and parsed arguments
+        $queryParams = ['op' => 'props'];
+        $uri = sprintf('http://localhost/%s?%s', $containerName, http_build_query($queryParams));
+        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $args = ['container' => $containerName];
 
-/** @var GetContainerHandler $handler */
-$handler = $this->getContainer()->get(GetContainerHandler::class);
+        /** @var GetContainerHandler $handler */
+        $handler = $this->getContainer()->get(GetContainerHandler::class);
 
-// invoke handler and hold the response
-$response = $handler($request, new Response(), $args);
+        // invoke handler and hold the response
+        $response = $handler($request, new Response(), $args);
 
-// assert the expected response status code
-$this->assertSame(200, $response->getStatusCode());
+        // assert the expected response status code
+        $this->assertSame(200, $response->getStatusCode());
 
-// decode the response body
-$contents = $response->getBody()->getContents();
-$data = json_decode($contents, true);
+        // decode the response body
+        $contents = $response->getBody()->getContents();
+        $data = json_decode($contents, true);
 
-// assert the response contains data
-$this->assertIsArray($data);
-$this->assertArrayHasKey('lastModified', $data);
-$this->assertArrayHasKey('metadata', $data);
-foreach ($metadata as $key => $value) {
-    $this->assertArrayHasKey($key, $data['metadata']);
-    $this->assertSame((string) $value, $data['metadata'][$key]);
-}
+        // assert the response contains data
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('lastModified', $data);
+        $this->assertArrayHasKey('metadata', $data);
+        foreach ($metadata as $key => $value) {
+            $this->assertArrayHasKey($key, $data['metadata']);
+            $this->assertSame((string) $value, $data['metadata'][$key]);
+        }
 
         // delete the container
         $client->delete();

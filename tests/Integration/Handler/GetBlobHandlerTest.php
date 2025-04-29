@@ -20,196 +20,202 @@ final class GetBlobHandlerTest extends IntegrationTestCase
     #[DataProvider('argumentsProvider')]
     public function testInvalidArguments(string $containerName, string $blobName, array $queryParams, string $expectedException): void
     {
-$uri = sprintf('http://localhost/%s/%s', $containerName, $blobName);
-$request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
-$response = new Response();
-$args = ['container' => $containerName, 'blob' => $blobName];
+        $uri = sprintf('http://localhost/%s/%s', $containerName, $blobName);
+        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $response = new Response();
+        $args = ['container' => $containerName, 'blob' => $blobName];
 
-    /** @var GetBlobHandler $handler */
-        $handler = $this->getContainer()->get(GetBlobHandler::class);;
+        /** @var GetBlobHandler $handler */
+        $handler = $this->getContainer()->get(GetBlobHandler::class);
+        ;
 
-$this->expectException($expectedException);
-$handler($request, $response, $args);
-   }
+        $this->expectException($expectedException);
+        $handler($request, $response, $args);
+    }
 
-   public static function argumentsProvider(): array{
-    return [
-        ['-invalid-', 'foo/bar.txt', ['op' => 'content'], InvalidContainerException::class],
-        ['my-container', '', ['op' => 'content'], InvalidBlobException::class],
-        ['my-container', 'foo/bar.txt', ['op' => 'INVALID'], InvalidOperationException::class],
-    ];
-   }
+    public static function argumentsProvider(): array
+    {
+        return [
+            ['-invalid-', 'foo/bar.txt', ['op' => 'content'], InvalidContainerException::class],
+            ['my-container', '', ['op' => 'content'], InvalidBlobException::class],
+            ['my-container', 'foo/bar.txt', ['op' => 'INVALID'], InvalidOperationException::class],
+        ];
+    }
 
-   public function testGetBlobContents(): void{
-    // generate random container and blob names
-    $containerName = uniqid('test-');
-    $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
+    public function testGetBlobContents(): void
+    {
+        // generate random container and blob names
+        $containerName = uniqid('test-');
+        $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
 
-    // create the container
-    $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
-    $containerClient->create();
-    $this->assertTrue($containerClient->exists());
+        // create the container
+        $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
+        $containerClient->create();
+        $this->assertTrue($containerClient->exists());
 
-    // create the blob
-    $contents = random_bytes(rand(100, 1000));
-    $contentType = 'text/plain';
-    $blobClient = $containerClient->getBlobClient($blobName);
-    $blobClient->upload($contents, new UploadBlobOptions($contentType));
-    $this->assertTrue($blobClient->exists());
+        // create the blob
+        $contents = random_bytes(rand(100, 1000));
+        $contentType = 'text/plain';
+        $blobClient = $containerClient->getBlobClient($blobName);
+        $blobClient->upload($contents, new UploadBlobOptions($contentType));
+        $this->assertTrue($blobClient->exists());
 
-    // create server request and parsed arguments
-    $queryParams = ['op' => 'content'];
-    $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
-    $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
-    $args = ['container' => $containerName, 'blob' => $blobName];
+        // create server request and parsed arguments
+        $queryParams = ['op' => 'content'];
+        $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
+        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $args = ['container' => $containerName, 'blob' => $blobName];
 
-    /** @var GetBlobHandler $handler */
-    $handler = $this->getContainer()->get(GetBlobHandler::class);
+        /** @var GetBlobHandler $handler */
+        $handler = $this->getContainer()->get(GetBlobHandler::class);
 
-    // invoke handler and hold the response
-    $response = $handler($request, new Response(), $args);
+        // invoke handler and hold the response
+        $response = $handler($request, new Response(), $args);
 
-    // assert the expected response status code
-    $this->assertSame(200, $response->getStatusCode());
-    $this->assertSame($contentType, $response->getHeader('content-type')[0]);
-    $this->assertSame($contents, $response->getBody()->getContents());
-    
-    // delete the container
-    $containerClient->delete();
-   }
+        // assert the expected response status code
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame($contentType, $response->getHeader('content-type')[0]);
+        $this->assertSame($contents, $response->getBody()->getContents());
 
-   public function testGetBlobProperties(): void{
-    // generate random container and blob names
-    $containerName = uniqid('test-');
-    $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
+        // delete the container
+        $containerClient->delete();
+    }
 
-    // create the container
-    $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
-    $containerClient->create();
-    $this->assertTrue($containerClient->exists());
+    public function testGetBlobProperties(): void
+    {
+        // generate random container and blob names
+        $containerName = uniqid('test-');
+        $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
 
-    // create the blob
-    $contents = random_bytes(rand(100, 1000));
-    $contentType = 'text/plain';
-    $blobClient = $containerClient->getBlobClient($blobName);
-    $blobClient->upload($contents, new UploadBlobOptions($contentType));
-    $this->assertTrue($blobClient->exists());
+        // create the container
+        $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
+        $containerClient->create();
+        $this->assertTrue($containerClient->exists());
 
-    // set metadata
-    $metadata = ['time' => time(), 'id' => uniqid()];
-    $blobClient->setMetadata($metadata);
+        // create the blob
+        $contents = random_bytes(rand(100, 1000));
+        $contentType = 'text/plain';
+        $blobClient = $containerClient->getBlobClient($blobName);
+        $blobClient->upload($contents, new UploadBlobOptions($contentType));
+        $this->assertTrue($blobClient->exists());
 
-    // create server request and parsed arguments
-    $queryParams = ['op' => 'props'];
-    $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
-    $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
-    $args = ['container' => $containerName, 'blob' => $blobName];
+        // set metadata
+        $metadata = ['time' => time(), 'id' => uniqid()];
+        $blobClient->setMetadata($metadata);
 
-    /** @var GetBlobHandler $handler */
-    $handler = $this->getContainer()->get(GetBlobHandler::class);
+        // create server request and parsed arguments
+        $queryParams = ['op' => 'props'];
+        $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
+        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $args = ['container' => $containerName, 'blob' => $blobName];
 
-    // invoke handler and hold the response
-    $response = $handler($request, new Response(), $args);
+        /** @var GetBlobHandler $handler */
+        $handler = $this->getContainer()->get(GetBlobHandler::class);
 
-    // assert the expected response status code
-    $this->assertSame(200, $response->getStatusCode());
+        // invoke handler and hold the response
+        $response = $handler($request, new Response(), $args);
 
-    // decode and assert blob properties
-    $body = $response->getBody()->getContents();
-    $data = json_decode($body, true);
-    $this->assertIsArray($data);
-    $this->assertSame((string) $metadata['time'], $data['metadata']['time']);
-    $this->assertSame($metadata['id'], $data['metadata']['id']);
-    
-    // delete the container
-    $containerClient->delete();
-   }
+        // assert the expected response status code
+        $this->assertSame(200, $response->getStatusCode());
 
-   public function testGetBlobTags(): void{
-    // generate random container and blob names
-    $containerName = uniqid('test-');
-    $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
+        // decode and assert blob properties
+        $body = $response->getBody()->getContents();
+        $data = json_decode($body, true);
+        $this->assertIsArray($data);
+        $this->assertSame((string) $metadata['time'], $data['metadata']['time']);
+        $this->assertSame($metadata['id'], $data['metadata']['id']);
 
-    // create the container
-    $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
-    $containerClient->create();
-    $this->assertTrue($containerClient->exists());
+        // delete the container
+        $containerClient->delete();
+    }
 
-    // create the blob
-    $contents = random_bytes(rand(100, 1000));
-    $contentType = 'text/plain';
-    $blobClient = $containerClient->getBlobClient($blobName);
-    $blobClient->upload($contents, new UploadBlobOptions($contentType));
-    $this->assertTrue($blobClient->exists());
+    public function testGetBlobTags(): void
+    {
+        // generate random container and blob names
+        $containerName = uniqid('test-');
+        $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
 
-    // set tags
-    $tags = ['tag1' => 'value1', 'tag2' => 'value2'];
-    $blobClient->setTags($tags);
+        // create the container
+        $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
+        $containerClient->create();
+        $this->assertTrue($containerClient->exists());
 
-    // create server request and parsed arguments
-    $queryParams = ['op' => 'tags'];
-    $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
-    $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
-    $args = ['container' => $containerName, 'blob' => $blobName];
+        // create the blob
+        $contents = random_bytes(rand(100, 1000));
+        $contentType = 'text/plain';
+        $blobClient = $containerClient->getBlobClient($blobName);
+        $blobClient->upload($contents, new UploadBlobOptions($contentType));
+        $this->assertTrue($blobClient->exists());
 
-    /** @var GetBlobHandler $handler */
-    $handler = $this->getContainer()->get(GetBlobHandler::class);
+        // set tags
+        $tags = ['tag1' => 'value1', 'tag2' => 'value2'];
+        $blobClient->setTags($tags);
 
-    // invoke handler and hold the response
-    $response = $handler($request, new Response(), $args);
+        // create server request and parsed arguments
+        $queryParams = ['op' => 'tags'];
+        $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
+        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $args = ['container' => $containerName, 'blob' => $blobName];
 
-    // assert the expected response status code
-    $this->assertSame(200, $response->getStatusCode());
+        /** @var GetBlobHandler $handler */
+        $handler = $this->getContainer()->get(GetBlobHandler::class);
 
-    // decode and assert blob tags
-    $body = $response->getBody()->getContents();
-    $data = json_decode($body, true);
-    $this->assertIsArray($data);
-    $this->assertSame($tags, $data);
-    
-    // delete the container
-    $containerClient->delete();
-   }
+        // invoke handler and hold the response
+        $response = $handler($request, new Response(), $args);
 
-   public function testGetSasUrl(): void{
-    // generate random container and blob names
-    $containerName = uniqid('test-');
-    $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
+        // assert the expected response status code
+        $this->assertSame(200, $response->getStatusCode());
 
-    // create the container
-    $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
-    $containerClient->create();
-    $this->assertTrue($containerClient->exists());
+        // decode and assert blob tags
+        $body = $response->getBody()->getContents();
+        $data = json_decode($body, true);
+        $this->assertIsArray($data);
+        $this->assertSame($tags, $data);
 
-    // create the blob
-    $contents = random_bytes(rand(100, 1000));
-    $contentType = 'text/plain';
-    $blobClient = $containerClient->getBlobClient($blobName);
-    $blobClient->upload($contents, new UploadBlobOptions($contentType));
-    $this->assertTrue($blobClient->exists());
+        // delete the container
+        $containerClient->delete();
+    }
 
-    // create server request and parsed arguments
-    $queryParams = ['op' => 'sas', 'ttl' => 600, 'perms' => 'r'];
-    $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
-    $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
-    $args = ['container' => $containerName, 'blob' => $blobName];
+    public function testGetSasUrl(): void
+    {
+        // generate random container and blob names
+        $containerName = uniqid('test-');
+        $blobName = sprintf('%s/%s.txt', uniqid(), uniqid());
 
-    /** @var GetBlobHandler $handler */
-    $handler = $this->getContainer()->get(GetBlobHandler::class);
+        // create the container
+        $containerClient = $this->getBlobServiceClient()->getContainerClient($containerName);
+        $containerClient->create();
+        $this->assertTrue($containerClient->exists());
 
-    // invoke handler and hold the response
-    $response = $handler($request, new Response(), $args);
+        // create the blob
+        $contents = random_bytes(rand(100, 1000));
+        $contentType = 'text/plain';
+        $blobClient = $containerClient->getBlobClient($blobName);
+        $blobClient->upload($contents, new UploadBlobOptions($contentType));
+        $this->assertTrue($blobClient->exists());
 
-    // assert the expected response status code
-    $this->assertSame(200, $response->getStatusCode());
+        // create server request and parsed arguments
+        $queryParams = ['op' => 'sas', 'ttl' => 600, 'perms' => 'r'];
+        $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
+        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $args = ['container' => $containerName, 'blob' => $blobName];
 
-    // assert response body
-    $body = $response->getBody()->getContents();
-    $sas = new Uri($body);
-    $this->assertNotFalse(strpos($sas->getPath(), $containerName));
-    $this->assertNotFalse(strpos($sas->getPath(), $blobName));
+        /** @var GetBlobHandler $handler */
+        $handler = $this->getContainer()->get(GetBlobHandler::class);
 
-    // delete the container
-    $containerClient->delete();
-   }
+        // invoke handler and hold the response
+        $response = $handler($request, new Response(), $args);
+
+        // assert the expected response status code
+        $this->assertSame(200, $response->getStatusCode());
+
+        // assert response body
+        $body = $response->getBody()->getContents();
+        $sas = new Uri($body);
+        $this->assertNotFalse(strpos($sas->getPath(), $containerName));
+        $this->assertNotFalse(strpos($sas->getPath(), $blobName));
+
+        // delete the container
+        $containerClient->delete();
+    }
 }

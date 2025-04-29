@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Validator;
 
-final class 
-RequiredArgumentValidator extends AbstractValidator
+final class RequiredArgumentValidator extends AbstractValidator
 {
     public const MISSING_ARGUMENT_MESSAGE = 'Required missing argument in query string: ';
 
-    public function  validate($value, array $context = []): self
+    public function validate($value, array $context = []): self
     {
         parent::validate($value);
 
@@ -17,7 +16,7 @@ RequiredArgumentValidator extends AbstractValidator
             false === is_string($value)
             || '' === $value
             || false === array_key_exists($value, $context)
-            ) {
+        ) {
             $this->error = self::MISSING_ARGUMENT_MESSAGE . $value;
 
             return $this;

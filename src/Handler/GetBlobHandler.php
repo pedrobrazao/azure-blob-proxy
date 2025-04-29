@@ -22,15 +22,15 @@ final class GetBlobHandler
         private readonly BlobServiceClient $blobServiceClient,
         private readonly ContainerNameValidator $containerNameValidator,
         private readonly BlobNameValidator $blobNameValidator
-
-    ) {}
+    ) {
+    }
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
             throw new InvalidContainerException($this->containerNameValidator->getError());
         }
-        
+
         if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
             throw new InvalidBlobException($this->blobNameValidator->getError());
         }
@@ -38,12 +38,12 @@ final class GetBlobHandler
         switch ($request->getQueryParams()['op'] ?? null) {
             case 'content':
                 return $this->getContent($response, $args);
-                case 'props':
-                    return $this->getProperties($response, $args);
-                    case 'tags':
-                        return $this->getTags($response, $args);
-                    case 'sas':
-                        return $this->getSasUrl($request, $response, $args);
+            case 'props':
+                return $this->getProperties($response, $args);
+            case 'tags':
+                return $this->getTags($response, $args);
+            case 'sas':
+                return $this->getSasUrl($request, $response, $args);
         }
 
         throw new InvalidOperationException();
@@ -65,7 +65,8 @@ final class GetBlobHandler
         $properties = $client->getProperties();
         $json = json_encode($properties);
 
-        $body = Utils::streamFor($json);;
+        $body = Utils::streamFor($json);
+        ;
 
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
@@ -76,7 +77,8 @@ final class GetBlobHandler
         $tags = $client->getTags();
         $json = json_encode(($tags));
 
-        $body = Utils::streamFor($json);;
+        $body = Utils::streamFor($json);
+        ;
 
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }

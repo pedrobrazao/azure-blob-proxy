@@ -18,15 +18,16 @@ final class GetStorageHandler
     public function __construct(
         private readonly BlobServiceClient $blobServiceClient,
         private readonly RequiredArgumentValidator $requiredArgumentValidator
-    ) {}
+    ) {
+    }
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         switch ($request->getQueryParams()['op'] ?? null) {
             case 'list':
                 return $this->listContainers($response);
-                case 'find':
-                    return $this->findBlobsByTag($request, $response);
+            case 'find':
+                return $this->findBlobsByTag($request, $response);
         }
 
         throw new InvalidOperationException();
@@ -54,7 +55,7 @@ final class GetStorageHandler
         if (false === $this->requiredArgumentValidator->validate('where', $request->getQueryParams())->isValid()) {
             throw new MissingRequiredArgumentException($this->requiredArgumentValidator->getError());
         }
-        
+
         $where = $request->getQueryParams()['where'];
         $blobs = [];
 
