@@ -7,6 +7,7 @@ Proxy web application to expose Azure Blob Storage features over a simplified RE
 ## Requirements
 
 - PHP 8.2+
+- Composer 2+
 - NPM 8.10+ (only in development mode)
 
 ## Setup
@@ -19,7 +20,7 @@ Run these commands from the project root directory in order to install external 
 
 Setup Apache or Nginx document root to `public/index.php`.
 
-Copy `config/settings.php` to `config/settings.local.php` and adjust values accordingly.
+Copy `.env.example` to `.env` and adjust values accordingly your environment.
 
 Alternatively in development mode simply start Azurite as Azure emulator and PHP as local web server:
 
@@ -38,11 +39,11 @@ List all Containers in your Azure Storage account.
 
 ### Find Blobs by Tag in Account
 
-`GET /?op=find&tags=tag1,tag2,...`
+`GET /?op=find&where=<WHERE CONDITION>`
 
 ### List Blobs in Container
 
-`GET /{container}?op=list&prefix=optional-prefix`
+`GET /{container}?op=list&prefix=<OPTIONAL PREFIX>`
 
 ### Get Container Properties
 
@@ -58,9 +59,11 @@ Body:
 
 ### Find Blobs by Tag in Container
 
-`GET /{container}?op=find&tags=tag1,tag2,...`
+`GET /{container}?op=find&where=<WHERE CONDITION>`
 
 ### Delete Container
+
+Deletes the Container and all Blobs in it.
 
 `DELETE /{container}`
 
@@ -108,7 +111,10 @@ Body:
 
 Body:
 
-`[tag1,tag2,...]`
+{tag1=value1,tag2=value2,...}`
+
+> NOTE: All tag values MUST be set as strings.
+
 
 ### Delete Blob
 
@@ -116,4 +122,4 @@ Body:
 
 ### Generate SAS URL for Blob
 
-`GET /{container}/{blob}?op=sas&ttl=expiry-time-in-seconds&perms=rwd`
+`GET /{container}/{blob}?op=sas&ttl=expiry-<TIME IN SECONDS>&perms=<PERMISSIONS>`
