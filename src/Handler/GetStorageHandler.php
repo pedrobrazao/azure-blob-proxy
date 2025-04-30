@@ -57,11 +57,12 @@ final readonly class GetStorageHandler
         $blobs = [];
 
         foreach ($this->blobServiceClient->findBlobsByTag($where) as $blob) {
-            $blobs[] = $blob;
+            $blobs[$blob->name] = $blob;
         }
 
-        $body = $response->getBody();
-        $body->write(json_encode($blobs));
+        $json = json_encode($blobs);
+        $body = Utils::streamFor($json);
+        ;
 
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
