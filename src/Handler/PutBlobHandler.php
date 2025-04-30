@@ -16,12 +16,12 @@ use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class PutBlobHandler
+final readonly class PutBlobHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient,
-        private readonly ContainerNameValidator $containerNameValidator,
-        private readonly BlobNameValidator $blobNameValidator
+        private BlobServiceClient $blobServiceClient,
+        private ContainerNameValidator $containerNameValidator,
+        private BlobNameValidator $blobNameValidator
     ) {
     }
 
@@ -34,15 +34,11 @@ final class PutBlobHandler
         if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
             throw new InvalidBlobException($this->blobNameValidator->getError());
         }
-
-        switch ($request->getQueryParams()['op'] ?? '') {
-            case 'create':
-                return $this->createBlob($request, $response, $args);
-            case 'metadata':
-                return $this->setMetadata($request, $response, $args);
-        }
-
-        throw new InvalidOperationException();
+        return match ($request->getQueryParams()['op'] ?? '') {
+            'create' => $this->createBlob($request, $response, $args),
+            'metadata' => $this->setMetadata($request, $response, $args),
+            default => throw new InvalidOperationException(),
+        };
     }
 
     private function createBlob(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

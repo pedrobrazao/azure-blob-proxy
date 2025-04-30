@@ -18,12 +18,12 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 
-final class PostBlobHandler
+final readonly class PostBlobHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient,
-        private readonly ContainerNameValidator $containerNameValidator,
-        private readonly BlobNameValidator $blobNameValidator
+        private BlobServiceClient $blobServiceClient,
+        private ContainerNameValidator $containerNameValidator,
+        private BlobNameValidator $blobNameValidator
     ) {
     }
 
@@ -36,13 +36,10 @@ final class PostBlobHandler
         if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
             throw new InvalidBlobException($this->blobNameValidator->getError());
         }
-
-        switch ($request->getQueryParams()['op'] ?? '') {
-            case 'upload':
-                return $this->uploadBlobs($request, $response, $args);
-        }
-
-        throw new InvalidOperationException();
+        return match ($request->getQueryParams()['op'] ?? '') {
+            'upload' => $this->uploadBlobs($request, $response, $args),
+            default => throw new InvalidOperationException(),
+        };
     }
 
     private function uploadBlobs(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

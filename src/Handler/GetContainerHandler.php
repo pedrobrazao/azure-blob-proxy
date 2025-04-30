@@ -12,11 +12,11 @@ use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class GetContainerHandler
+final readonly class GetContainerHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient,
-        private readonly ContainerNameValidator $containerNameValidator
+        private BlobServiceClient $blobServiceClient,
+        private ContainerNameValidator $containerNameValidator
     ) {
     }
 
@@ -25,15 +25,11 @@ final class GetContainerHandler
         if (false === $this->containerNameValidator->validate($args['container'] ?? '')->isValid()) {
             throw new InvalidContainerException($this->containerNameValidator->getError());
         }
-
-        switch ($request->getQueryParams()['op'] ?? null) {
-            case 'list':
-                return $this->listBlobs($request, $response, $args);
-            case 'props':
-                return $this->getProperties($response, $args);
-        }
-
-        throw new InvalidOperationException();
+        return match ($request->getQueryParams()['op'] ?? null) {
+            'list' => $this->listBlobs($request, $response, $args),
+            'props' => $this->getProperties($response, $args),
+            default => throw new InvalidOperationException(),
+        };
     }
 
     private function listBlobs(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

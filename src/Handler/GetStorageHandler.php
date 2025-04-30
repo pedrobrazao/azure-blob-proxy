@@ -13,24 +13,21 @@ use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class GetStorageHandler
+final readonly class GetStorageHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient,
-        private readonly RequiredArgumentValidator $requiredArgumentValidator
+        private BlobServiceClient $blobServiceClient,
+        private RequiredArgumentValidator $requiredArgumentValidator
     ) {
     }
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        switch ($request->getQueryParams()['op'] ?? null) {
-            case 'list':
-                return $this->listContainers($response);
-            case 'find':
-                return $this->findBlobsByTag($request, $response);
-        }
-
-        throw new InvalidOperationException();
+        return match ($request->getQueryParams()['op'] ?? null) {
+            'list' => $this->listContainers($response),
+            'find' => $this->findBlobsByTag($request, $response),
+            default => throw new InvalidOperationException(),
+        };
     }
 
     private function listContainers(ResponseInterface $response): ResponseInterface

@@ -63,13 +63,13 @@ final class GetContainerHandlerTest extends IntegrationTestCase
         $blobs = [];
 
         // ... some are not prefixed
-        for ($i = 0; $i < rand(1, 9); $i++) {
-            $blobs[uniqid()] = random_bytes(rand(100, 1000));
+        for ($i = 0; $i < random_int(1, 9); $i++) {
+            $blobs[uniqid()] = random_bytes(random_int(100, 1000));
         }
 
         // ... some are prefixed
-        for ($i = 0; $i < rand(1, 9); $i++) {
-            $blobs[uniqid($prefix)] = random_bytes(rand(100, 1000));
+        for ($i = 0; $i < random_int(1, 9); $i++) {
+            $blobs[uniqid($prefix)] = random_bytes(random_int(100, 1000));
         }
 
         // put the blobs to the container

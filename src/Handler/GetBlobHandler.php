@@ -16,12 +16,12 @@ use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class GetBlobHandler
+final readonly class GetBlobHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient,
-        private readonly ContainerNameValidator $containerNameValidator,
-        private readonly BlobNameValidator $blobNameValidator
+        private BlobServiceClient $blobServiceClient,
+        private ContainerNameValidator $containerNameValidator,
+        private BlobNameValidator $blobNameValidator
     ) {
     }
 
@@ -34,19 +34,13 @@ final class GetBlobHandler
         if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
             throw new InvalidBlobException($this->blobNameValidator->getError());
         }
-
-        switch ($request->getQueryParams()['op'] ?? null) {
-            case 'content':
-                return $this->getContent($response, $args);
-            case 'props':
-                return $this->getProperties($response, $args);
-            case 'tags':
-                return $this->getTags($response, $args);
-            case 'sas':
-                return $this->getSasUrl($request, $response, $args);
-        }
-
-        throw new InvalidOperationException();
+        return match ($request->getQueryParams()['op'] ?? null) {
+            'content' => $this->getContent($response, $args),
+            'props' => $this->getProperties($response, $args),
+            'tags' => $this->getTags($response, $args),
+            'sas' => $this->getSasUrl($request, $response, $args),
+            default => throw new InvalidOperationException(),
+        };
     }
 
     private function getContent(ResponseInterface $response, array $args): ResponseInterface

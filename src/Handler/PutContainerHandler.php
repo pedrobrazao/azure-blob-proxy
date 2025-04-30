@@ -13,11 +13,11 @@ use AzureOss\Storage\Blob\Models\GetBlobsOptions;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class PutContainerHandler
+final readonly class PutContainerHandler
 {
     public function __construct(
-        private readonly BlobServiceClient $blobServiceClient,
-        private readonly ContainerNameValidator $containerNameValidator
+        private BlobServiceClient $blobServiceClient,
+        private ContainerNameValidator $containerNameValidator
     ) {
     }
 
@@ -26,15 +26,11 @@ final class PutContainerHandler
         if (false === $this->containerNameValidator->validate($args['container'] ?? '')->isValid()) {
             throw new InvalidContainerException($this->containerNameValidator->getError());
         }
-
-        switch ($request->getQueryParams()['op'] ?? '') {
-            case 'create':
-                return $this->createContainer($response, $args);
-            case 'metadata':
-                return $this->setMetadata($request, $response, $args);
-        }
-
-        throw new InvalidOperationException();
+        return match ($request->getQueryParams()['op'] ?? '') {
+            'create' => $this->createContainer($response, $args),
+            'metadata' => $this->setMetadata($request, $response, $args),
+            default => throw new InvalidOperationException(),
+        };
     }
 
     private function createContainer(ResponseInterface $response, array $args): ResponseInterface

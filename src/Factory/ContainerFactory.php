@@ -7,9 +7,9 @@ namespace App\Factory;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 
-final class ContainerFactory
+final readonly class ContainerFactory
 {
-    public function __construct(private readonly array $definitions)
+    public function __construct(private array $definitions)
     {
     }
 

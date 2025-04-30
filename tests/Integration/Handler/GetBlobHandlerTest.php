@@ -54,7 +54,7 @@ final class GetBlobHandlerTest extends IntegrationTestCase
         $this->assertTrue($containerClient->exists());
 
         // create the blob
-        $contents = random_bytes(rand(100, 1000));
+        $contents = random_bytes(random_int(100, 1000));
         $contentType = 'text/plain';
         $blobClient = $containerClient->getBlobClient($blobName);
         $blobClient->upload($contents, new UploadBlobOptions($contentType));
@@ -93,7 +93,7 @@ final class GetBlobHandlerTest extends IntegrationTestCase
         $this->assertTrue($containerClient->exists());
 
         // create the blob
-        $contents = random_bytes(rand(100, 1000));
+        $contents = random_bytes(random_int(100, 1000));
         $contentType = 'text/plain';
         $blobClient = $containerClient->getBlobClient($blobName);
         $blobClient->upload($contents, new UploadBlobOptions($contentType));
@@ -141,7 +141,7 @@ final class GetBlobHandlerTest extends IntegrationTestCase
         $this->assertTrue($containerClient->exists());
 
         // create the blob
-        $contents = random_bytes(rand(100, 1000));
+        $contents = random_bytes(random_int(100, 1000));
         $contentType = 'text/plain';
         $blobClient = $containerClient->getBlobClient($blobName);
         $blobClient->upload($contents, new UploadBlobOptions($contentType));
@@ -188,7 +188,7 @@ final class GetBlobHandlerTest extends IntegrationTestCase
         $this->assertTrue($containerClient->exists());
 
         // create the blob
-        $contents = random_bytes(rand(100, 1000));
+        $contents = random_bytes(random_int(100, 1000));
         $contentType = 'text/plain';
         $blobClient = $containerClient->getBlobClient($blobName);
         $blobClient->upload($contents, new UploadBlobOptions($contentType));
