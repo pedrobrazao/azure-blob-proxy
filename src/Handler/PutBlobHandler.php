@@ -34,7 +34,7 @@ final readonly class PutBlobHandler
         if (false === $this->blobNameValidator->validate($args['blob'])->isValid()) {
             throw new InvalidBlobException($this->blobNameValidator->getError());
         }
-        return match ($request->getQueryParams()['op'] ?? '') {
+        return match ($request->getQueryParams()['op'] ?? null) {
             'create' => $this->createBlob($request, $response, $args),
             'metadata' => $this->setMetadata($request, $response, $args),
             default => throw new InvalidOperationException(),
