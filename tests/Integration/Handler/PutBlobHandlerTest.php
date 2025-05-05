@@ -22,7 +22,7 @@ final class PutBlobHandlerTest extends IntegrationTestCase
     public function testInvalidArguments(string $containerName, string $blobName, array $queryParams, string $expectedException): void
     {
         $uri = sprintf('http://localhost/%s/%s', $containerName, $blobName);
-        $request = (new ServerRequest('GET', $uri))->withQueryParams($queryParams);
+        $request = (new ServerRequest('PUT', $uri))->withQueryParams($queryParams);
         $response = new Response();
         $args = ['container' => $containerName, 'blob' => $blobName];
 
@@ -85,7 +85,7 @@ final class PutBlobHandlerTest extends IntegrationTestCase
         $blobClient = $containerClient->getBlobClient($blobName);
         $blobClient->upload(random_bytes(random_int(10, 20)), new UploadBlobOptions('text/plain'));
         $this->assertTrue($blobClient->exists());
-        
+
         // create server request and parsed arguments
         $queryParams = ['op' => 'metadata'];
         $uri = sprintf('http://localhost/%s/%s?%s', $containerName, $blobName, http_build_query($queryParams));
@@ -102,7 +102,8 @@ final class PutBlobHandlerTest extends IntegrationTestCase
         $this->assertSame(200, $response->getStatusCode());
 
         // assert metadata
-        $this->assertSame($metadata, $blobClient->getProperties()->metadata);;
+        $this->assertSame($metadata, $blobClient->getProperties()->metadata);
+        ;
 
         // delete the container
         $containerClient->delete();
