@@ -8,6 +8,10 @@ final class RequiredArgumentValidator extends AbstractValidator
 {
     public const MISSING_ARGUMENT_MESSAGE = 'Required missing argument in query string: ';
 
+    /**
+     * @param scalar|object $value
+     * @param array<string, string> $context
+     */
     public function validate($value, array $context = []): self
     {
         parent::validate($value);

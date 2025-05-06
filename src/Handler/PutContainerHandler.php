@@ -21,6 +21,9 @@ final readonly class PutContainerHandler
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (false === $this->containerNameValidator->validate($args['container'] ?? '')->isValid()) {
@@ -33,6 +36,9 @@ final readonly class PutContainerHandler
         };
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function createContainer(ResponseInterface $response, array $args): ResponseInterface
     {
         $client = $this->blobServiceClient->getContainerClient($args['container']);
@@ -41,6 +47,9 @@ final readonly class PutContainerHandler
         return $response->withStatus(201);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function setMetadata(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $metadata = json_decode($request->getBody()->getContents(), true);

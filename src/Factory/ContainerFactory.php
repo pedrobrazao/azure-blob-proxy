@@ -9,6 +9,9 @@ use Psr\Container\ContainerInterface;
 
 final readonly class ContainerFactory
 {
+    /**
+     * @param array<string, callable> $definitions
+     */
     public function __construct(private array $definitions)
     {
     }

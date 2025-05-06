@@ -25,6 +25,9 @@ final readonly class GetBlobHandler
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
@@ -43,6 +46,9 @@ final readonly class GetBlobHandler
         };
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function getContent(ResponseInterface $response, array $args): ResponseInterface
     {
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
@@ -53,6 +59,9 @@ final readonly class GetBlobHandler
         return $response->withStatus(200)->withHeader('content-type', $contentType)->withBody($body);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function getProperties(ResponseInterface $response, array $args): ResponseInterface
     {
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
@@ -65,6 +74,9 @@ final readonly class GetBlobHandler
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function getTags(ResponseInterface $response, array $args): ResponseInterface
     {
         $client = $this->blobServiceClient->getContainerClient($args['container'])->getBlobClient($args['blob']);
@@ -77,9 +89,12 @@ final readonly class GetBlobHandler
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function getSasUrl(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $ttl = (int) $request->getQueryParams()['ttl'] ?? 3600;
+        $ttl = (int) ($request->getQueryParams()['ttl'] ?? 3600);
         $perms = $request->getQueryParams()['perms'] ?? 'r';
 
         $builder = BlobSasBuilder::new()->setContainerName($args['container'])

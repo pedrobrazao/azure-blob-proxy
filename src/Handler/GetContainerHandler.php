@@ -20,6 +20,9 @@ final readonly class GetContainerHandler
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (false === $this->containerNameValidator->validate($args['container'] ?? '')->isValid()) {
@@ -32,6 +35,9 @@ final readonly class GetContainerHandler
         };
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function listBlobs(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $blobs = [];
@@ -49,6 +55,9 @@ final readonly class GetContainerHandler
         return $response->withStatus(200)->withHeader('content-type', 'application/json')->withBody($body);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function getProperties(ResponseInterface $response, array $args): ResponseInterface
     {
         $properties = $this->blobServiceClient->getContainerClient($args['container'])->getProperties();

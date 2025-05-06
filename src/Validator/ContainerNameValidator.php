@@ -17,6 +17,10 @@ final class ContainerNameValidator extends AbstractValidator
 
     public const INVALID_NAME_MESSAGE = 'The container name is invalid: ';
 
+    /**
+     * @param scalar|object $value
+     * @param array<string, string> $context
+     */
     public function validate($value, array $context = []): self
     {
         parent::validate($value);

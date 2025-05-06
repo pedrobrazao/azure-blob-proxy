@@ -10,6 +10,9 @@ use PHPUnit\Framework\TestCase;
 
 final class RequiredArgumentValidatorTest extends TestCase
 {
+    /**
+     * @param array<string, string> $arguments
+     */
     #[DataProvider('argumentProvider')]
     public function testRequiredArgument(string $name, array $arguments, bool $valid): void
     {
@@ -19,6 +22,9 @@ final class RequiredArgumentValidatorTest extends TestCase
         $this->assertSame($valid ? null : RequiredArgumentValidator::MISSING_ARGUMENT_MESSAGE . $name, $validator->getError());
     }
 
+    /**
+     * @return array<array<string|bool|string[]>>
+     */
     public static function argumentProvider(): array
     {
         return [

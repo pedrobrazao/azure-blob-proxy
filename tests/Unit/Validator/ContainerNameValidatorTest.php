@@ -19,6 +19,9 @@ final class ContainerNameValidatorTest extends TestCase
         $this->assertSame($valid ? null : ContainerNameValidator::INVALID_NAME_MESSAGE . $name, $validator->getError());
     }
 
+    /**
+     * @return array<array<string|bool>>
+     */
     public static function containerNameProvider(): array
     {
         return [

@@ -21,6 +21,9 @@ final readonly class GetStorageHandler
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         return match ($request->getQueryParams()['op'] ?? null) {

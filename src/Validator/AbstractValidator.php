@@ -11,6 +11,10 @@ abstract class AbstractValidator implements ValidatorInterface
     protected bool $valid = false;
     protected ?string $error = self::INCOMPLTE_VALIDATION_MESSAGE;
 
+    /**
+     * @param scalar|object $value
+     * @param array<string, string> $context
+     */
     public function validate($value, array $context = []): self
     {
         $this->valid = false;

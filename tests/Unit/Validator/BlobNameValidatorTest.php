@@ -19,6 +19,9 @@ final class BlobNameValidatorTest extends TestCase
         $this->assertSame($valid ? null : BlobNameValidator::INVALID_NAME_MESSAGE, $validator->getError());
     }
 
+    /**
+     * @return array<array<string|bool>>
+     */
     public static function blobNameProvider(): array
     {
         return [

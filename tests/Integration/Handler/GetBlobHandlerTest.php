@@ -17,6 +17,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class GetBlobHandlerTest extends IntegrationTestCase
 {
+    /**
+     * @param array<string, string> $queryParams
+     */
     #[DataProvider('argumentsProvider')]
     public function testInvalidArguments(string $containerName, string $blobName, array $queryParams, string $expectedException): void
     {
@@ -33,6 +36,12 @@ final class GetBlobHandlerTest extends IntegrationTestCase
         $handler($request, $response, $args);
     }
 
+    /**
+     * @return array<array<string|string[]>>
+     */
+    /**
+     * @return array<array<string|string[]>>
+     */
     public static function argumentsProvider(): array
     {
         return [
@@ -100,7 +109,7 @@ final class GetBlobHandlerTest extends IntegrationTestCase
         $this->assertTrue($blobClient->exists());
 
         // set metadata
-        $metadata = ['time' => time(), 'id' => uniqid()];
+        $metadata = ['time' => date('c'), 'id' => uniqid()];
         $blobClient->setMetadata($metadata);
 
         // create server request and parsed arguments

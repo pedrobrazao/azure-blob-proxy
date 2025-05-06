@@ -27,6 +27,9 @@ final readonly class PostBlobHandler
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
@@ -42,6 +45,9 @@ final readonly class PostBlobHandler
         };
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function uploadBlobs(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $upload = current($request->getUploadedFiles());

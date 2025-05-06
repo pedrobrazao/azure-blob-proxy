@@ -19,6 +19,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class PostBlobHandlerTest extends IntegrationTestCase
 {
+    /**
+     * @param string[] $queryParams
+     */
     #[DataProvider('argumentsProvider')]
     public function testInvalidArguments(string $containerName, string $blobName, array $queryParams, string $expectedException): void
     {
@@ -35,6 +38,9 @@ final class PostBlobHandlerTest extends IntegrationTestCase
         $handler($request, $response, $args);
     }
 
+    /**
+     * @return array<array<string|string[]>>
+     */
     public static function argumentsProvider(): array
     {
         return [

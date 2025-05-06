@@ -102,6 +102,9 @@ final class GetContainerHandlerTest extends IntegrationTestCase
         $client->delete();
     }
 
+    /**
+     * @return array<string[]>
+     */
     public static function prefixProvider(): array
     {
         return [
@@ -124,7 +127,7 @@ final class GetContainerHandlerTest extends IntegrationTestCase
         $this->assertTrue($client->exists());
 
         // set metadata
-        $metadata = ['time' => time(), 'id' => uniqid()];
+        $metadata = ['time' => date('c'), 'id' => uniqid()];
         $client->setMetadata($metadata);
 
         // assert the metadata is stored

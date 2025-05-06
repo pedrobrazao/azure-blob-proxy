@@ -25,6 +25,9 @@ final readonly class PutBlobHandler
     ) {
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         if (false === $this->containerNameValidator->validate($args['container'])->isValid()) {
@@ -41,6 +44,9 @@ final readonly class PutBlobHandler
         };
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function createBlob(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $header = $request->getHeader('content-type');
@@ -52,6 +58,9 @@ final readonly class PutBlobHandler
         return $response->withStatus(201);
     }
 
+    /**
+     * @param array<string, string> $args
+     */
     private function setMetadata(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $metadata = json_decode($request->getBody()->getContents(), true);
