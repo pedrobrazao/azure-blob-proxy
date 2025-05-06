@@ -78,5 +78,8 @@ final class PostBlobHandlerTest extends IntegrationTestCase
         $blob = $blobClient->downloadStreaming();
         $this->assertSame($contents, $blob->content->getContents());
         $this->assertSame($contentType, $blob->properties->contentType);
+
+        // delete the container
+        $containerClient->delete();
     }
 }
